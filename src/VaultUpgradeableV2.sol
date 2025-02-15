@@ -1,10 +1,19 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import {ERC20Upgradeable} from "openzeppelin-contracts-upgradeable/contracts/token/ERC20/ERC20Upgradeable.sol";
+import {ReentrancyGuardUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/utils/ReentrancyGuardUpgradeable.sol";
+import {Initializable} from "openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
+import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
-contract Vault is ERC20 {
+contract VaultUpgradeableV2 is
+    Initializable,
+    ERC20Upgradeable,
+    ReentrancyGuardUpgradeable
+{
+    using SafeERC20 for IERC20;
+
     error AmountCannotBeZero();
     error SharesCannotBeMoreThanBalance();
 
@@ -13,8 +22,16 @@ contract Vault is ERC20 {
 
     address public assetToken;
     address public owner;
+    uint256 public constant version = 2;
 
-    constructor(address _assetToken) ERC20("Deposito Vault", "DEPO") {
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize(address _assetToken) external initializer {
+        __ERC20_init("Deposito Vault", "DEPO");
+        __ReentrancyGuard_init();
+
         assetToken = _assetToken;
         owner = msg.sender;
     }
